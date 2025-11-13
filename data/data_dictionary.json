@@ -1,0 +1,14 @@
+{
+    "FAMILY_TYPE": {
+        "1": "Not in a family",
+        "2": "Married or civil partnership couple family",
+        "3": "Cohabiting couple family",
+        "4": "Lone parent family (female)",
+        "5": "Lone parent family (male)",
+        "-8": "No code required (CE residents)"
+    },
+    "UR_RESIDENCE_TYPE": {
+        "1": "Resident in a household",
+        "2": "Resident in a communal establishment"
+    }
+}
