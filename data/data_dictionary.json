@@ -1,4 +1,42 @@
 {
+    "AGE_BAND_AGG8":{
+        "1": "0-15 years",
+        "2": "16-24 years",
+        "3": "25-34 years",
+        "4": "35-44 years",
+        "5": "45-54 years",
+        "6": "55-64 years",
+        "7": "65-74 years",
+        "8": "75+ years"
+    },
+    "COB_AGG3":{
+        "1": "Northern Ireland",
+        "2": "Rest of United Kingdom and Republic of Ireland",
+        "3": "Other"
+    },
+    "ECONOMIC_ACTIVITY_10M":{
+        "1": "Economically active (excluding full-time students): Employee",
+        "2": "Economically active (excluding full-time students): Self-employed",
+        "3": "Economically active (excluding full-time students): Unemployed",
+        "4": "Economically active: Full-time student",
+        "5": "Economically Inactive: Retired",
+        "6": "Economically Inactive: Student",
+        "7": "Economically Inactive: Looking after family or home",
+        "8": "Economically Inactive: Long term sick or disabled",
+        "9": "Economically Inactive: Other",
+        "-8": "Does not apply"
+    },
+    "ETHNIC_GROUP_AGG2":{
+        "1": "White",
+        "2": "Other"
+    },
+    "ECONOMIC_ACTIVITY_10M":{
+        "1": "Very good health",
+        "2": "Good health",
+        "3": "Fair health",
+        "4": "Bad health",
+        "5": "Very bad health"
+    },
     "FAMILY_TYPE": {
         "1": "Not in a family",
         "2": "Married or civil partnership couple family",
@@ -6,6 +44,79 @@
         "4": "Lone parent family (female)",
         "5": "Lone parent family (male)",
         "-8": "No code required (CE residents)"
+    },
+    "HH_SOCGRADE4":{
+        "1": "AB: Higher and intermediate managerial, administrative and professional occupations",
+        "2": "C1: Supervisory, clerical, and junior managerial, administrative and professional occupations",
+        "3": "C2: Skilled manual occupations",
+        "4": "DE: Semi-skilled and unskilled manual occupations; unemployed and lowest grade occupations",
+        "-8": "No code required"
+    },
+    "HOURS_PER_WEEK_WORKED":{
+        "1": "0-15 hours",
+        "2": "16-30 hours",
+        "3": "31-48 hours",
+        "4": "49+ hours",
+        "-8": "No code required (Aged under 16 or people not in employment in the week before census)"
+    },
+    "IN_FULL_TIME_EDUCATION":{
+        "1": "Student or schoolchild",
+        "2": "Not a student or schoolchild",
+        "-8": "No code required (Under school age - aged 0-3 years on 1 July 2020)"
+    },
+    "INDUSTRY_CURRENT_10A":{
+        "1": "A Agriculture, forestry and fishing",
+        "2": "C Manufacturing",
+        "3": "B, D, E Energy and water",
+        "4": "F Construction",
+        "5": "G, I Distribution, hotels and restaurants",
+        "6": "H, J Transport and communication",
+        "7": "K, L, M, N Financial, real estate, professional and administrative activities",
+        "8": "O, P, Q Public administration, education and health",
+        "9": "R, S, T, U Other",
+        "-8": "Does not apply"
+    },
+    "LEGAL_PARTNERSHIP_STATUS_6A":{
+        "1": "Single (never married or never registered a civil partnership)",
+        "2": "Married or in a registered civil partnership",
+        "3": "Separated (but still legally married or still legally in a civil partnership)",
+        "4": "Divorced or formerly in a civil partnership which is now legally dissolved",
+        "5": "Widowed or surviving partner from a civil partnership",
+        "-8": "No Code Required"
+    },
+    "OCCUPATION_CURRENT_1DIGIT":{
+        "1": "1. Managers, directors and senior officials",
+        "2": "2. Professional occupations",
+        "3": "3. Associate professional and technical occupations",
+        "4": "4. Administrative and secretarial occupations",
+        "5": "5. Skilled trades occupations",
+        "6": "6. Caring, leisure and other service occupations",
+        "7": "7. Sales and customer service occupations",
+        "8": "8. Process, plant and machine operatives",
+        "9": "9. Elementary occupations",
+        "-8": "No code required"
+    },
+    "RELIGION_BELONG_TO":{
+        "1": "Catholic",
+        "2": "Presbyterian Church in Ireland",
+        "3": "Church of Ireland",
+        "4": "Methodist Church in Ireland",
+        "5": "Other Christian",
+        "6": "Other religions",
+        "7": "No religion",
+        "8": "Religion not stated",
+        "-8": "No Code Required"
+    },
+    "RELIGION_BROUGHT_UP_IN":{
+        "1": "Catholic",
+        "2": "Protestant and other Christian (including Christian related)",
+        "3": "Other",
+        "4": "None",
+        "-8": "No code required (Religion belong to response provided)"
+    },
+    "Sex":{
+        "1": "Female",
+        "2": "Male"
     },
     "UR_RESIDENCE_TYPE": {
         "1": "Resident in a household",
