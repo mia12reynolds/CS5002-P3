@@ -97,9 +97,37 @@ def refine(df_raw, data_dict):
         # If critical columns are missing, stop refinement
         sys.exit(1)
 
-def save_refined_data(df, output_path):
-    """Saves the refined DataFrame to a new CSV file."""
-    
+    # Remove duplicates
+    initial_count = len(df)
+    df.drop_duplicates(inplace=True)
+    duplicates_removed = initial_count - len(df)
+    if duplicates_removed > 0:
+        print(f"Removed {duplicates_removed} duplicate records.")
+    else:
+        print("No duplicate records found.")
+
+#================ saving function ======================
+def save_refined_data(df_refined, output_path):
+    """Saves the refined DataFrame to a new CSV file.
+
+    Args:
+        df_refined: data frame with the refined data in.
+        output_path: path to save refined data csv into.
+    """
+    df_refined.to_csv(output_path, index=False)
+    print(f"refined data saved to: {output_path}")
+
+    # verification: Check if the file was written and has the expected number of records
+    df_check = pd.read_csv(output_path)
+    if len(df_check) == len(df_refined):
+        print("Verification successful: File count matches refined DataFrame count.")
+    else:
+        print("Verification : Saved file count mismatch.", file=sys.stderr)
+
+#========= for automating script from terminal =================   
+def main():
+    """Main function to execute the data refinement"""
+
 if __name__ == "__main__":
     main()
 
