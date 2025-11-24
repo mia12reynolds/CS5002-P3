@@ -9,7 +9,7 @@ import sys
 def load_data(csv_path):
     """Loads the CSV data into a pandas DataFrame.
     Args:
-        csv_path: Path to the required data.
+        csv_path (str): Path to the required data.
 
     Returns:
         df: data from the csv loaded into a dataframe.
@@ -23,7 +23,7 @@ def load_data(csv_path):
 def load_dictionary(dict_path):
     """Load the data dictionary containing expected variable types and allowed values.
     Args:
-        dict_path: Path to the dictionary coontaining labels.
+        dict_path (dict): Path to the dictionary containing labels.
     """
     print(f"Loading data dictionary: {dict_path}")
     with open(dict_path, "r") as f:
@@ -81,7 +81,7 @@ def refine(df_raw, data_dict):
     
     Args:
         df_raw: data frame with the required data in.
-        data_dict: data from the dictionary (codes and labels)
+        data_dict (dict): data from the dictionary (codes and labels)
 
     Returns:
         df_refined: refined data in data frame.
@@ -97,14 +97,16 @@ def refine(df_raw, data_dict):
         # If critical columns are missing, stop refinement
         sys.exit(1)
 
-    # Remove duplicates
+    # Remove duplicate serial numbers, keeping the first
     initial_count = len(df)
-    df.drop_duplicates(inplace=True)
+    df = df.drop_duplicates(subset=["SerialNum"], keep='first')
     duplicates_removed = initial_count - len(df)
     if duplicates_removed > 0:
         print(f"Removed {duplicates_removed} duplicate records.")
     else:
         print("No duplicate records found.")
+
+    # Consistency Checks (Format and Admissible Values)
 
 #================ saving function ======================
 def save_refined_data(df_refined, output_path):
@@ -112,7 +114,7 @@ def save_refined_data(df_refined, output_path):
 
     Args:
         df_refined: data frame with the refined data in.
-        output_path: path to save refined data csv into.
+        output_path (str): path to save refined data csv into.
     """
     df_refined.to_csv(output_path, index=False)
     print(f"refined data saved to: {output_path}")
@@ -122,11 +124,34 @@ def save_refined_data(df_refined, output_path):
     if len(df_check) == len(df_refined):
         print("Verification successful: File count matches refined DataFrame count.")
     else:
-        print("Verification : Saved file count mismatch.", file=sys.stderr)
+        print("Verification failed: Saved file count mismatch.", file=sys.stderr)
 
 #========= for automating script from terminal =================   
 def main():
     """Main function to execute the data refinement"""
+
+    parser = argparse.ArgumentParser(
+        description= "Automated script to upload the raw census dataset, refine the data and output a refined CSV file.")
+
+    # Define arguments for input(raw data), output(refined data) and dictionary paths
+    parser.add_argument('input_file', type=str, help='Path to the raw CSV data file')
+    parser.add_argument('output_file', type=str, help='Path to save the refined CSV data file')
+    parser.add_argument('dictionary_file', type=str, help='Path to the extended data dictionary JSON file')
+
+    args = parser.parse_args()
+
+    # Load resources
+    raw_df = load_data(args.input_file)
+    data_dict = load_dictionary(args.dictionary_file)
+    
+    # Perform refinement
+    refined_df = refine(raw_df, data_dict)
+    
+    # Save the result
+    save_refined_data(refined_df, args.output_file)
+
+    # Verify script has ran
+    print("Script execution finished")
 
 if __name__ == "__main__":
     main()
