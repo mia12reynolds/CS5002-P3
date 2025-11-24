@@ -107,6 +107,46 @@ def refine(df_raw, data_dict):
         print("No duplicate records found.")
 
     # Consistency Checks (Format and Admissible Values)
+    # Track records that violate rules
+    broken_records_indices = set() 
+    
+    # Iterate through variables defined in the dictionary
+    for col_name, admissible_values_map in data_dict.items():
+        print(f"Checking column: {col_name}")
+
+        # The admissible keys are the codes in the dictionary (e.g, '1', '-8')
+        admissible_keys = list(admissible_values_map.keys())
+
+        # Column is treated as string for lookup against string dictionary keys
+        df[col_name] = df[col_name].astype(str)
+        
+        # Find rows where the value is not in the admissible keys
+        #'~' to select the rows that violate the condition
+        violations = df[~df[col_name].isin(admissible_keys)]
+        
+        if not violations.empty:
+            print(f"Found {len(violations)} records with inadmissible values in '{col_name}'.")
+            
+            # Print information about broken records
+            print("Example broken records:")
+            print(violations[['SerialNum', col_name]].head())
+            
+            # Add indices of broken records to the set
+            broken_records_indices.update(violations.index.tolist())
+            
+    # Remove all Broken Records
+    if broken_records_indices:
+        print(f"Removing {len(broken_records_indices)} records due to inconsistencies.")
+        
+        # Create the refined DataFrame by dropping all broken indices
+        df_refined = df.drop(index=broken_records_indices).reset_index(drop=True)
+    else:
+        print("No further inconsistencies found.")
+        df_refined = df.copy()
+
+    final_record_count = len(df_refined)
+    print(f"Refinement complete. Final record count: {final_record_count}")
+    return df_refined
 
 #================ saving function ======================
 def save_refined_data(df_refined, output_path):
