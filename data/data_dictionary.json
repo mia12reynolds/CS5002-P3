@@ -57,7 +57,7 @@
         "2": "16-30 hours",
         "3": "31-48 hours",
         "4": "49+ hours",
-        "-8": "No code required (Aged under 16 or people not in employment in the week before census)"
+        "-8": "No code required"
     },
     "IN_FULL_TIME_EDUCATION":{
         "1": "Student or schoolchild",

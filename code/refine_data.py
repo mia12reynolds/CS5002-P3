@@ -29,49 +29,6 @@ def load_dictionary(dict_path):
     with open(dict_path, "r") as f:
         return json.load(f)
     
-#================ Label mapping and counts =====================
-def mapping_from_dict(column_name, data_dict):
-    """
-    Retrieves the code to textual label mapping for a given column from the data dictionary.
-    
-    Args:
-        column_name (str): The column key (e.g, 'SEX').
-        data_dict (dict): The loaded JSON data dictionary.
-        
-    Returns:
-        dict: A dictionary mapping code string (e.g, "1") to label string (e.g, "Female").
-    """
-    # .get() to retrieve the dictionary associated with the column name
-    return data_dict.get(column_name, {})
-
-def get_labels_and_counts(df, column_name, code_mapping):
-    """
-    Calculates value counts and prepares descriptive labels .
-
-    Args:
-        df: The input DataFrame.
-        column_name (str): The column to analyse.
-        code_mapping (dict): The dictionary mapping codes to textual labels.
-        
-    Returns:
-        tuple: (list of textual labels, list of counts)
-    """
-    # Calculate the raw value counts, sorted by code
-    counts = df[column_name].value_counts().sort_index()
-    
-    codes = counts.index.tolist()
-    counts_list = counts.values.tolist()
-    labels = []
-    
-    for code in codes:
-        code_str = str(code)
-        # Use the data dictionary to get the descriptive text
-        label = code_mapping.get(code_str, f"Code {code_str}")
-        
-        labels.append(label)
-        
-    return labels, counts_list
-
 #================= Refine function================================
 def refine(df_raw, data_dict):
     """ 
