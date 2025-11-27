@@ -3,6 +3,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import ipywidgets as widgets
 
 #================ Label mapping and counts =====================
 def mapping_from_dict(column_name, data_dict):
@@ -88,7 +89,7 @@ def bar_chart(df, column_name, data_dict):
     for bar in bars:
         yval = bar.get_height()
         # Position label slightly above the bar
-        plt.text(bar.get_x() + bar.get_width()/2, yval + 20, yval, ha='center', va='bottom', fontsize=10)
+        plt.text(bar.get_x() + bar.get_width()/2, yval + 5, yval, ha='center', va='bottom', fontsize=10)
 
     plt.tight_layout() # Ensures everything fits
     plt.show()
@@ -203,8 +204,7 @@ def pandas_filtering(df, filter_col, filter_codes, groupby_col, data_dict, title
     bars = plt.bar(
         plot_data[groupby_col], 
         plot_data['Count'], 
-        color=plt.cm.viridis(np.linspace(0, 0.8, len(plot_data))) 
-    )
+        color='skyblue')
 
     plt.title(title, fontsize=15)
     plt.xlabel(groupby_col, fontsize=12)
@@ -214,7 +214,7 @@ def pandas_filtering(df, filter_col, filter_codes, groupby_col, data_dict, title
     for bar in bars:
         yval = bar.get_height()
         # Position label slightly above the bar
-        plt.text(bar.get_x() + bar.get_width()/2, yval + 20, yval, ha='center', va='bottom', fontsize=10)
+        plt.text(bar.get_x() + bar.get_width()/2, yval + 5, yval, ha='center', va='bottom', fontsize=10)
 
     plt.xticks(rotation=15, ha='right')
     plt.grid(axis='y', linestyle='--', alpha=0.7)
@@ -223,3 +223,71 @@ def pandas_filtering(df, filter_col, filter_codes, groupby_col, data_dict, title
 
     # Also print the table for completeness
     print(distribution_counts.to_markdown())
+
+#============= interactive plots using widgets ===========================
+def interactive_plot(df, filter_col, target_col, data_dict):
+    """
+    Creates an interactive widget to filter data by 'filter_col' and plot the 
+    distribution of 'target_col'.
+    
+    Args:
+        df: The input DataFrame.
+        filter_col (str): The column to create the dropdown for 
+        target_col (str): The column to plot the distribution of 
+        data_dict (dict): The data dictionary for label mapping.
+    """
+    # Get the code-to-label maps for both columns
+    filter_mapping = mapping_from_dict(filter_col, data_dict)
+    target_mapping = mapping_from_dict(target_col, data_dict)
+    
+    # Prepare the list of labels for the drop down
+    dropdown_options = sorted(list(filter_mapping.values()))
+    
+    # Update Function (runs when the drop down option is changed)
+    def update_view(selected_label):
+        # Find the code corresponding to the selected label
+        selected_code = None
+        for code, label in filter_mapping.items():
+            if label == selected_label:
+                selected_code = code
+                break
+        
+        if selected_code is None:
+            return
+
+        # Filter the DataFrame
+        subset = df[df[filter_col].astype(str) == selected_code].copy()
+        
+        # Group by the target column and count the records
+        counts = subset[target_col].value_counts().sort_index()
+        counts.index = counts.index.astype(str).map(target_mapping)
+
+        # Prepare data for plotting
+        plot_data = counts.reset_index()
+        plot_data.columns = [target_col, 'Count']
+    
+        # set up the plot
+        plt.figure(figsize=(10, 6))
+
+        bars = plt.bar(
+               plot_data[target_col], 
+               plot_data['Count'], 
+               color='pink')
+        
+        # Add data labels on top of the bars
+        for bar in bars:
+            yval = bar.get_height()
+            # Position label slightly above the bar
+            plt.text(bar.get_x() + bar.get_width()/2, yval + 1, yval, ha='center', va='bottom', fontsize=10)
+
+        plt.title(f'Distribution of {target_col}, filtered by {filter_col}: "{selected_label}", Total Records: {len(subset)}', fontsize=14)
+        plt.xlabel(target_col, fontsize=12)
+        plt.ylabel('Count of Individuals', fontsize=12)
+
+        plt.xticks(rotation=15, ha='right')
+        plt.grid(axis='y', linestyle='--', alpha=0.7)
+        plt.tight_layout()
+        plt.show()
+
+    # Create the Widget
+    widgets.interact(update_view, selected_label=dropdown_options);
