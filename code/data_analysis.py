@@ -51,8 +51,8 @@ def get_labels_and_counts(df, column_name, code_mapping):
 #================ Bar chart ==================================
 def bar_chart(df, column_name, data_dict):
     """
-    Generates a single bar chart for a categorical variable, handling data retrieval,
-    labeling, rotation, and adding data labels for completeness.
+    Generates a bar chart for a categorical variable, handling data retrieval and
+    labelling.
 
     Args:
         df: The input dataframe.
@@ -97,8 +97,8 @@ def bar_chart(df, column_name, data_dict):
 #================ Pie chart ==================================
 def pie_chart(df, column_name, data_dict):
     """
-    Generates a single pie chart for a categorical variable, including dynamic color mapping 
-    and a legend placed outside the plot area.
+    Generates a pie chart for a categorical variable, handling data retrieval and
+    labelling.
     
     Args:
         df: The input DataFrame.
@@ -138,7 +138,8 @@ def pie_chart(df, column_name, data_dict):
 #================= 2D tables =================================
 def crosstab_groupby(df, col1, col2, data_dict):
     """
-    Creates a cross-tabulation table with descriptive labels using pandas groupby().
+    Creates a cross-tabulation table between two variables with 
+    descriptive labels using pandas groupby().
 
     Args:
         df: The input dataframe.

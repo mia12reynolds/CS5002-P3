@@ -21,7 +21,7 @@ def load_data(csv_path):
     return df
 
 def load_dictionary(dict_path):
-    """Load the data dictionary containing expected variable types and allowed values.
+    """Loads the data dictionary containing expected variable types and allowed values.
     Args:
         dict_path (dict): Path to the dictionary containing labels.
     """
