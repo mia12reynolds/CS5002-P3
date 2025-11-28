@@ -83,17 +83,26 @@ def refine(df_raw, data_dict):
     
     # Iterate through variables defined in the dictionary
     for col_name, admissible_values_map in data_dict.items():
-        print(f"Checking column: {col_name}")
+
+        # Check for Missing Values (NaN) first 
+        # not necessary for this data set since there are no missing values but ensure reproducability for other data sets
+        null_violations = df[df[col_name].isna()]
+        if not null_violations.empty:
+            print(f"Found {len(null_violations)} records with MISSING (NaN) values.")
+            broken_records_indices.update(null_violations.index.tolist())
+
+        # only validate non-null values against the dictionary
+        df_non_null = df[df[col_name].notna()].copy()
 
         # The admissible keys are the codes in the dictionary (e.g, '1', '-8')
         admissible_keys = list(admissible_values_map.keys())
 
         # Column is treated as string for lookup against string dictionary keys
-        df[col_name] = df[col_name].astype(str)
+        df_non_null[col_name] = df_non_null[col_name].astype(str)
         
         # Find rows where the value is not in the admissible keys
         #'~' to select the rows that violate the condition
-        violations = df[~df[col_name].isin(admissible_keys)]
+        violations = df_non_null[~df_non_null[col_name].isin(admissible_keys)]
         
         if not violations.empty:
             print(f"Found {len(violations)} records with inadmissible values in '{col_name}'.")
