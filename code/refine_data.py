@@ -14,20 +14,34 @@ def load_data(csv_path):
     Returns:
         df: data from the csv loaded into a dataframe.
     """
-    print(f"Loading CSV: {csv_path}")
-    df = pd.read_csv(csv_path)
-    print(f"Successfully loaded {len(df)} records.")
-    print(df.info())                            # can check for missing values and the types in each column
-    return df
+    try:
+        df = pd.read_csv(csv_path)
+        print(f"Successfully loaded {len(df)} records.")
+        print(df.info())                # can check for missing values and the types in each column
+        return df
+    # display errors on the console/terminal screen
+    except FileNotFoundError:
+        print(f"Error: Raw data file not found at {csv_path}", file=sys.stderr)
+        sys.exit(1)     # terminates the script
+    except Exception as e:
+        print(f"Error loading data: {e}", file=sys.stderr)
+        sys.exit(1)
 
 def load_dictionary(dict_path):
     """Loads the data dictionary containing expected variable types and allowed values.
     Args:
         dict_path (dict): Path to the dictionary containing labels.
     """
-    print(f"Loading data dictionary: {dict_path}")
-    with open(dict_path, "r") as f:
-        return json.load(f)
+    try:
+        with open(dict_path, "r") as f:
+            return json.load(f)
+    # display errors on the console/terminal screen
+    except FileNotFoundError:
+        print(f"Error: Dictionary file not found at '{dict_path}'", file=sys.stderr)
+        sys.exit(1)     # terminates the script
+    except Exception as e:
+        print(f"Error loading dictionary: {e}", file=sys.stderr)
+        sys.exit(1)
     
 #================= Refine function================================
 def refine(df_raw, data_dict):
