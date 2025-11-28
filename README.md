@@ -7,7 +7,7 @@ It includes the following files:
 
 -  `data_dictionary.json`: The extended dictionary,which provides the textual interpretations for values of the variables.
 
--  `refine_data.py`: The data loading and cleaning script. Can run from the terminal using the command python code/refine_data.py data/census-2021-public-microdata-teaching-sample.csv data/refined_data.csv data/data_dictionary.json. Depending on the environment in which it is ran, if 'python' doesn't work, locate the python path e.g '~\anaconda3\python.exe'. Can also import this module into the notebook to run and create the refined data CSV.
+-  `refine_data.py`: The data loading and cleaning script. Can run from the terminal using the command python code/refine_data.py data/census-2021-public-microdata-teaching-sample.csv data/refined_data.csv data/data_dictionary.json. Can add an optional path e.g 'data/removed_records.csv' for saving broken/removed records. Depending on the environment in which it is ran, if 'python' doesn't work, locate the python path e.g '~\anaconda3\python.exe'. Can also import this module into the notebook to run and create the refined data CSV.
 
 -  `data_analysis.py`: The reusable analysis and plotting functions.
 

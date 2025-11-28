@@ -53,18 +53,21 @@ def load_dictionary(dict_path):
         raise
     
 #================= Refine function================================
-def refine(df_raw, data_dict):
+def refine(df_raw, data_dict, id_col="SerialNum"):      
+    # adding an ID argument instead of hard coding in SerialNum so the function can be reused with other data sets
     """ 
     Performs consistency checks and refines the raw census data:
     - validate types and admissible values using a data dictionary
     - removes duplicates and NaN values
     
     Args:
-        df_raw: data frame with the required data in.
+        df_raw: data frame containing the raw data in.
         data_dict (dict): data from the dictionary (codes and labels)
+        id_col (str): name of the column containing identifiers
 
     Returns:
-        df_refined: refined data in data frame.
+        df_refined: dataframe containing refined data 
+        df_removed: dataframe containing removed/broken records
     """
     # catch errors without modifying the original
     df = df_raw.copy()
@@ -72,6 +75,7 @@ def refine(df_raw, data_dict):
     # Ensure all required columns exist to start
     expected_cols = list(data_dict.keys())
     missing_cols = [col for col in expected_cols if col not in df.columns]
+
     if missing_cols:
         logger.error("Missing expected columns in raw data: %s", missing_cols)
         # If critical columns are missing, stop refinement
@@ -79,8 +83,9 @@ def refine(df_raw, data_dict):
 
     # Remove duplicate serial numbers, keeping the first
     initial_count = len(df)
-    df = df.drop_duplicates(subset=["SerialNum"], keep='first')
+    df = df.drop_duplicates(subset=[id_col], keep='first')
     duplicates_removed = initial_count - len(df)
+
     if duplicates_removed > 0:
         logger.info("Removed %d duplicate records.", duplicates_removed)
     else:
@@ -116,9 +121,6 @@ def refine(df_raw, data_dict):
         if not violations.empty:
             logger.warning("Found %d records with inadmissible values in '%s'.", len(violations), col_name)
             
-            # Print information about broken records
-            logger.debug("Example broken records for column '%s':\n%s", col_name, violations[['SerialNum', col_name]].head().to_string(index=False))
-            
             # Add indices of broken records to the set
             broken_records_indices.update(violations.index.tolist())
             
@@ -128,15 +130,19 @@ def refine(df_raw, data_dict):
         
         # Create the refined DataFrame by dropping all broken indices
         df_refined = df.drop(index=broken_records_indices).reset_index(drop=True)
+        # Create DataFrame of removed/broken records (empty if none)
+        df_removed = df.loc[sorted(broken_records_indices)].copy().reset_index(drop=True)
+
     else:
         logger.info("No further inconsistencies found.")
         df_refined = df.copy()
+        df_removed = pd.DataFrame(columns=df.columns)
 
     final_record_count = len(df_refined)
     logger.info("Refinement complete. Final record count: %d", final_record_count)
-    return df_refined
+    return df_refined, df_removed
 
-#================ saving function ======================
+#================ saving functions ======================
 def save_refined_data(df_refined, output_path):
     """Saves the refined DataFrame to a new CSV file.
 
@@ -158,6 +164,22 @@ def save_refined_data(df_refined, output_path):
     except Exception as e:
         logger.error("Failed to verify saved file %s: %s", output_path, e)
 
+def save_removed_records(df_removed, removed_output_path):
+    """Save the removed/broken records (if any) to a CSV for inspection.
+
+    Args:
+        df_removed: data frame with the removed/broken records in.
+        removed_output_path (str): path to save removed/broken records csv into.
+    """
+    if df_removed.empty:
+        logger.info("No removed/broken records to save.")
+        return
+    try:
+        df_removed.to_csv(removed_output_path, index=False)
+        logger.info("Removed/broken records saved to: %s", removed_output_path)
+    except Exception as e:
+        logger.error("Failed to save removed records to %s: %s", removed_output_path, e)
+
 #========= for automating script from terminal =================   
 def main():
     """Main function to execute the data refinement"""
@@ -169,6 +191,8 @@ def main():
     parser.add_argument('input_file', type=str, help='Path to the raw CSV data file')
     parser.add_argument('output_file', type=str, help='Path to save the refined CSV data file')
     parser.add_argument('dictionary_file', type=str, help='Path to the extended data dictionary JSON file')
+    # Option to add path to save the removed records CSV
+    parser.add_argument('--removed-output', type=str, default=None, help='Optional path to save removed/broken records CSV')
 
     args = parser.parse_args()
 
@@ -178,10 +202,14 @@ def main():
         data_dict = load_dictionary(args.dictionary_file)
 
         # Perform refinement
-        refined_df = refine(raw_df, data_dict)
+        refined_df, removed_df = refine(raw_df, data_dict)
 
         # Save the result
         save_refined_data(refined_df, args.output_file)
+
+        # Save removed records if requested
+        if args.removed_output:
+            save_removed_records(removed_df, args.removed_output)
         
         # Verify script has ran
         logger.info("Script execution finished")
