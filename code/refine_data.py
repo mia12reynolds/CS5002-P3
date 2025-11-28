@@ -4,6 +4,15 @@ import pandas as pd
 import json
 import argparse
 import sys
+import logging
+
+# ============ Logging Setup =============
+logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s",
+    handlers=[
+        logging.FileHandler("refine.log", mode="w"), # write all logs to refine.log
+        logging.StreamHandler(sys.stdout)])
+
+logger = logging.getLogger(__name__)
 
 #============ Loading data and dictionary ======================
 def load_data(csv_path):
@@ -16,16 +25,16 @@ def load_data(csv_path):
     """
     try:
         df = pd.read_csv(csv_path)
-        print(f"Successfully loaded {len(df)} records.")
+        logger.info("Successfully loaded %d records.", len(df))
         print(df.info())                # can check for missing values and the types in each column
         return df
     # display errors on the console/terminal screen
     except FileNotFoundError:
-        print(f"Error: Raw data file not found at {csv_path}", file=sys.stderr)
-        sys.exit(1)     # terminates the script
+        logger.error("Raw data file not found at %s", csv_path)
+        raise
     except Exception as e:
-        print(f"Error loading data: {e}", file=sys.stderr)
-        sys.exit(1)
+        logger.error("Error loading data from %s: %s", csv_path, e)
+        raise
 
 def load_dictionary(dict_path):
     """Loads the data dictionary containing expected variable types and allowed values.
@@ -37,18 +46,18 @@ def load_dictionary(dict_path):
             return json.load(f)
     # display errors on the console/terminal screen
     except FileNotFoundError:
-        print(f"Error: Dictionary file not found at '{dict_path}'", file=sys.stderr)
-        sys.exit(1)     # terminates the script
+        logger.error("Dictionary file not found at %s", dict_path)
+        raise
     except Exception as e:
-        print(f"Error loading dictionary: {e}", file=sys.stderr)
-        sys.exit(1)
+        logger.error("Error loading dictionary from %s: %s", dict_path, e)
+        raise
     
 #================= Refine function================================
 def refine(df_raw, data_dict):
     """ 
     Performs consistency checks and refines the raw census data:
     - validate types and admissible values using a data dictionary
-    - removes duplicates
+    - removes duplicates and NaN values
     
     Args:
         df_raw: data frame with the required data in.
@@ -64,7 +73,7 @@ def refine(df_raw, data_dict):
     expected_cols = list(data_dict.keys())
     missing_cols = [col for col in expected_cols if col not in df.columns]
     if missing_cols:
-        print(f"Error: Missing expected columns in raw data: {missing_cols}", file=sys.stderr)
+        logger.error("Missing expected columns in raw data: %s", missing_cols)
         # If critical columns are missing, stop refinement
         sys.exit(1)
 
@@ -73,9 +82,9 @@ def refine(df_raw, data_dict):
     df = df.drop_duplicates(subset=["SerialNum"], keep='first')
     duplicates_removed = initial_count - len(df)
     if duplicates_removed > 0:
-        print(f"Removed {duplicates_removed} duplicate records.")
+        logger.info("Removed %d duplicate records.", duplicates_removed)
     else:
-        print("No duplicate records found.")
+        logger.info("No duplicate records found.")
 
     # Consistency Checks (Format and Admissible Values)
     # Track records that violate rules
@@ -88,7 +97,7 @@ def refine(df_raw, data_dict):
         # not necessary for this data set since there are no missing values but ensure reproducability for other data sets
         null_violations = df[df[col_name].isna()]
         if not null_violations.empty:
-            print(f"Found {len(null_violations)} records with MISSING (NaN) values.")
+            logger.warning("Found %d records with MISSING (NaN) values in column '%s'.", len(null_violations), col_name)
             broken_records_indices.update(null_violations.index.tolist())
 
         # only validate non-null values against the dictionary
@@ -105,27 +114,26 @@ def refine(df_raw, data_dict):
         violations = df_non_null[~df_non_null[col_name].isin(admissible_keys)]
         
         if not violations.empty:
-            print(f"Found {len(violations)} records with inadmissible values in '{col_name}'.")
+            logger.warning("Found %d records with inadmissible values in '%s'.", len(violations), col_name)
             
             # Print information about broken records
-            print("Example broken records:")
-            print(violations[['SerialNum', col_name]].head())
+            logger.debug("Example broken records for column '%s':\n%s", col_name, violations[['SerialNum', col_name]].head().to_string(index=False))
             
             # Add indices of broken records to the set
             broken_records_indices.update(violations.index.tolist())
             
     # Remove all Broken Records
     if broken_records_indices:
-        print(f"Removing {len(broken_records_indices)} records due to inconsistencies.")
+        logger.info("Removing %d records due to inconsistencies.", len(broken_records_indices))
         
         # Create the refined DataFrame by dropping all broken indices
         df_refined = df.drop(index=broken_records_indices).reset_index(drop=True)
     else:
-        print("No further inconsistencies found.")
+        logger.info("No further inconsistencies found.")
         df_refined = df.copy()
 
     final_record_count = len(df_refined)
-    print(f"Refinement complete. Final record count: {final_record_count}")
+    logger.info("Refinement complete. Final record count: %d", final_record_count)
     return df_refined
 
 #================ saving function ======================
@@ -137,14 +145,18 @@ def save_refined_data(df_refined, output_path):
         output_path (str): path to save refined data csv into.
     """
     df_refined.to_csv(output_path, index=False)
-    print(f"refined data saved to: {output_path}")
+    logger.info("Refined data saved to: %s", output_path)
 
     # verification: Check if the file was written and has the expected number of records
-    df_check = pd.read_csv(output_path)
-    if len(df_check) == len(df_refined):
-        print("Verification successful: File count matches refined DataFrame count.")
-    else:
-        print("Verification failed: Saved file count mismatch.", file=sys.stderr)
+    try:
+        df_check = pd.read_csv(output_path)
+        if len(df_check) == len(df_refined):
+            logger.info("Verification successful: File count matches refined DataFrame count.")
+        else: 
+            logger.error("Verification failed: Saved file count (%d) does not match expected (%d).", len(df_check), len(df_refined))
+            
+    except Exception as e:
+        logger.error("Failed to verify saved file %s: %s", output_path, e)
 
 #========= for automating script from terminal =================   
 def main():
@@ -160,18 +172,24 @@ def main():
 
     args = parser.parse_args()
 
-    # Load resources
-    raw_df = load_data(args.input_file)
-    data_dict = load_dictionary(args.dictionary_file)
-    
-    # Perform refinement
-    refined_df = refine(raw_df, data_dict)
-    
-    # Save the result
-    save_refined_data(refined_df, args.output_file)
+    try:
+        # Load resources
+        raw_df = load_data(args.input_file)
+        data_dict = load_dictionary(args.dictionary_file)
 
-    # Verify script has ran
-    print("Script execution finished")
+        # Perform refinement
+        refined_df = refine(raw_df, data_dict)
+
+        # Save the result
+        save_refined_data(refined_df, args.output_file)
+        
+        # Verify script has ran
+        logger.info("Script execution finished")
+    
+    except Exception as e:
+        logger.exception("Script failed: %s", e)
+        sys.exit(1)
+    
 
 if __name__ == "__main__":
     main()
